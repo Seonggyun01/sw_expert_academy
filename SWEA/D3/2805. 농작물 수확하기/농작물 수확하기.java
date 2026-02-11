@@ -1,38 +1,34 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
-import java.util.Scanner;
+public class Solution{
 
-public class Solution {
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        int T = scanner.nextInt();
-        for(int t=1;t<=T;t++){
-            int N = scanner.nextInt();
-            scanner.nextLine(); //버퍼 지우기
-            int[][] arr = new int[N][N];
-            for(int i =0;i<N;i++){
-                String str = scanner.nextLine();
-                for(int j=0;j<str.length();j++){
-                    arr[i][j] = Integer.parseInt(str.substring(j,j+1));
-                }
-            }
-            int middel = N/2;
-            int result = 0;
-            for(int i=0;i<N;i++){
-                if(i<=middel) {
-                    for (int j = middel - i; j < middel + i + 1; j++) {
-                        result+=arr[i][j];
-                        //System.out.println(i+", "+j+", "+result);
-                    }
-                }
-                else{
-                    for(int j = i-middel;j<N-(i-middel);j++){
-                        result+=arr[i][j];
-                        //System.out.println(i+", "+j+", "+result);
-                    }
-                }
+	public static void main(String[] args) throws IOException{
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		
+		int T = Integer.parseInt(br.readLine());
+		
+		for(int t=1;t<=T;t++) {
 
-            }
-            System.out.println("#"+t+" " +result);
-        }
-    }
+			int N = Integer.parseInt(br.readLine());
+			
+			int[][] map = new int[N][N];
+			int sum = 0;
+			int middle=N/2;
+			
+			for(int i=0;i<N;i++) {
+				String str = br.readLine();
+				for(int j=0;j<N;j++) {
+					map[i][j] = str.charAt(j)-'0';
+					if(Math.abs(middle-i)<= middle-Math.abs(middle-j)  ) {
+						sum+=map[i][j];
+					}	
+				}
+			}
+			System.out.println("#"+t+" "+sum);
+		}
+	}
 }
+
+
