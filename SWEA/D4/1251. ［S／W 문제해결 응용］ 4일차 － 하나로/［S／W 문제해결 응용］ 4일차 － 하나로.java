@@ -1,100 +1,81 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.PriorityQueue;
 import java.util.StringTokenizer;
 
 public class Solution {
-	static int[] parents;
-	static long result;
-	static BigDecimal E;
+	static class Node implements Comparable<Node>{
+		int to;
+		long weight;
+		public Node(int to, long weight) {
+			super();
+			this.to = to;
+			this.weight = weight;
+		}
+		@Override
+		public int compareTo(Node o) {
+			return Long.compare(this.weight, o.weight);
+		}
+		
+	}
 
 	public static void main(String[] args) throws Exception{
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		StringTokenizer st = new StringTokenizer(br.readLine());
-		
+
 		int T = Integer.parseInt(st.nextToken());
-		for(int t=1;t<=T;t++) {
+		for (int t = 1; t <= T; t++) {
 			st = new StringTokenizer(br.readLine());
-			int V = Integer.parseInt(st.nextToken());
-			long[] xList = new long[V];
-			long[] yList = new long[V];
-			
-			st = new StringTokenizer(br.readLine());
-			for(int i=0;i<V;i++) {
-				xList[i] = Integer.parseInt(st.nextToken());
+			int N = Integer.parseInt(st.nextToken());
+//			List<Node>[] adjList = new ArrayList[N];
+//			for(int i=0;i<N;i++) {
+//				adjList[i] = new ArrayList<Node>();
+//			}
+			long[] from = new long[N];
+			long[] to = new long[N];
+			StringTokenizer fromStr = new StringTokenizer(br.readLine());
+			StringTokenizer toStr = new StringTokenizer(br.readLine());
+			for(int i=0;i<N;i++) {
+				from[i] = Integer.parseInt(fromStr.nextToken());
+				to[i] = Integer.parseInt(toStr.nextToken());
 			}
-			st = new StringTokenizer(br.readLine());
-			for(int i=0;i<V;i++) {
-				yList[i] = Integer.parseInt(st.nextToken());
-			}
-			st = new StringTokenizer(br.readLine());
-			E = new BigDecimal(st.nextToken());
+			double E = Double.parseDouble(br.readLine());
 			
-			Edge[] edgeList = new Edge[V*(V-1)/2];
-			int index = 0;
-			for(int i=0;i<V;i++) {
-				for(int j=i+1;j<V;j++) {
-					int start = i;
-					int end = j;
-					long x = (xList[i]-xList[j])*(xList[i]-xList[j]);
-					long y = (yList[i]-yList[j])*(yList[i]-yList[j]);
-					long weight = x+y;
-					
-					edgeList[index++] = new Edge(start, end, weight);
+			//각 정점까지 도달하는 가중치의 최솟값 배열 초기화
+			long[] minVertex = new long[N];
+			Arrays.fill(minVertex,Long.MAX_VALUE);
+			boolean[] visited = new boolean[N];
+			long result = 0;
+			int vCnt = 0;
+			
+			PriorityQueue<Node> pq = new PriorityQueue<>();
+			minVertex[0] = 0;
+			pq.offer(new Node(0,0));
+			while(!pq.isEmpty()) {
+				Node temp = pq.poll();
+				int v = temp.to;
+				if(visited[v]) continue;
+				visited[v] = true;
+				result+=temp.weight;
+				vCnt++;
+				if(vCnt == N) break;
+				for(int i=0;i<N;i++) {
+					if(i==v || visited[i]) continue;
+					long weight = (from[v]-from[i])*(from[v]-from[i]) + (to[v]-to[i])*(to[v]-to[i]);
+					if(minVertex[i] > weight) {
+						minVertex[i] = weight;
+						pq.offer(new Node(i,weight));
+					}
 				}
 			}
-			Arrays.sort(edgeList);
 			
-			result = 0;
-			parents = new int[V];
-			for(int i=0;i<V;i++) {
-				parents[i] = i;
-			}
-			
-			
-			int eCnt = 0;
-			for(Edge edge : edgeList) {
-				int start = edge.start;
-				int end = edge.end;
-				if(union(start,end)) {
-					eCnt++;
-					result = result+edge.weight;
-					if(eCnt==V-1) break;
-				}
-			}
-			BigDecimal finalResult = new BigDecimal(result).multiply(E).setScale(0,RoundingMode.HALF_UP);
-			
-			System.out.println("#"+t+" "+finalResult);
+			result = Math.round(result*E);
+			System.out.println("#"+t+" "+result);
 			
 		}
-	}
-	private static boolean union(int a, int b) {
-		int rootA = findSet(a);
-		int rootB = findSet(b);
-		if(rootA == rootB) return false;
-		parents[rootB] = rootA;
-		return true;
-	}
-	private static int findSet(int a) {
-		if(parents[a] == a) return a;
-		return parents[a] = findSet(parents[a]);
-	}
-	
-	static class Edge implements Comparable<Edge>{
-		int start, end;
-		long weight;
-		public Edge(int start, int end, long weight) {
-			this.start = start;
-			this.end = end;
-			this.weight = weight;
-		}
-		@Override
-		public int compareTo(Edge o) {
-			return Long.compare(this.weight,o.weight);
-		}
-		
 	}
 
 }
