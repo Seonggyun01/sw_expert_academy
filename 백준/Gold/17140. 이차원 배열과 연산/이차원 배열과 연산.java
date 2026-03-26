@@ -1,15 +1,14 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.StringTokenizer;
 
-public class Main {
-    static int r, c, k;
-    static int[][] A = new int[101][101];
-    static int rowSize = 3, colSize = 3;
+public class Main{
+    static int r,c,k;
+    static int[][] A;
 
-    static class Node implements Comparable<Node> {
+    static class Node implements Comparable<Node>{
         int num, count;
-
         public Node(int num, int count) {
             this.num = num;
             this.count = count;
@@ -17,99 +16,121 @@ public class Main {
 
         @Override
         public int compareTo(Node o) {
-            if (this.count == o.count) {
-                return Integer.compare(this.num, o.num);
+            int result;
+            if(this.count == o.count){
+                result = Integer.compare(this.num, o.num);
+            }else{
+                result = Integer.compare(this.count, o.count);
             }
-            return Integer.compare(this.count, o.count);
+            return result;
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception{
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         StringTokenizer st = new StringTokenizer(br.readLine());
 
-        r = Integer.parseInt(st.nextToken());
-        c = Integer.parseInt(st.nextToken());
+        r = Integer.parseInt(st.nextToken())-1;
+        c = Integer.parseInt(st.nextToken())-1;
         k = Integer.parseInt(st.nextToken());
+        int currR = 3;
+        int currC = 3;
 
-        for (int i = 1; i <= 3; i++) {
+        A = new int[100][100];
+        for(int i=0;i<3;i++){
             st = new StringTokenizer(br.readLine());
-            for (int j = 1; j <= 3; j++) {
+            for(int j=0;j<3;j++){
                 A[i][j] = Integer.parseInt(st.nextToken());
             }
         }
-
-        System.out.println(solve());
-    }
-
-    static int solve() {
-        for (int time = 0; time <= 100; time++) {
-            // 목표 숫자가 k인지 확인 (인덱스 범위 체크 포함)
-            if (A[r][c] == k) return time;
-
-            if (rowSize >= colSize) {
-                rowOperation();
-            } else {
-                colOperation();
+        int turn = 0;
+        while(true){
+            //기저 조건
+            if(turn > 100){
+                turn = -1;
+                break;
             }
+            else if(r<currR && c<currC && A[r][c] == k){
+                break;
+            }
+
+            //currR >= currC인 경우
+            if(currR >= currC){
+
+                int maxLength = 0;
+                for(int r=0;r<currR;r++){
+                    ArrayList<Node> list = new ArrayList<>();
+                    for(int c=0;c<currC;c++){
+                        if(A[r][c] == 0)continue;
+                        boolean existed = false;
+                        for(Node node : list){
+                            if(node.num == A[r][c]){
+                                node.count++;
+                                existed = true;
+                                break;
+                            }
+                        }
+                        if(!existed){
+                            list.add(new Node(A[r][c], 1));
+                        }
+                    }
+                    list.sort(null);
+
+                    int index = 0;
+                    for(Node node : list){
+                        A[r][index++] = node.num;
+                        A[r][index++] = node.count;
+                        if(index == 100){
+                            break;
+                        }
+                    }
+                    for(int c=index; c<100;c++){
+                        A[r][c] = 0;
+                    }
+
+                    maxLength = Math.max(maxLength, index);
+                }
+                currC = maxLength;
+            }
+            else if(currR < currC){
+                int maxLength = 0;
+                for(int c=0;c<currC;c++){
+                    ArrayList<Node> list = new ArrayList<>();
+                    for(int r=0;r<currR;r++){
+                        if(A[r][c] == 0) continue;
+                        boolean existed = false;
+                        for(Node node : list){
+                            if(node.num == A[r][c]){
+                                node.count++;
+                                existed = true;
+                                break;
+                            }
+                        }
+                        if(!existed){
+                            list.add(new Node(A[r][c],1));
+                        }
+                    }
+                    list.sort(null);
+                    int index = 0;
+                    for(Node node : list){
+                        A[index++][c] = node.num;
+                        A[index++][c] = node.count;
+                        if(index == 100){
+                            break;
+                        }
+                    }
+                    for(int r=index;r<100;r++){
+                        A[r][c] = 0;
+                    }
+
+                    maxLength = Math.max(maxLength, index);
+                }
+                currR = maxLength;
+            }
+            turn++;
+
         }
-        return -1;
+        System.out.println(turn);
     }
 
-    // R 연산: 행 단위 정렬
-    static void rowOperation() {
-        int maxCol = 0;
-        for (int i = 1; i <= rowSize; i++) {
-            Map<Integer, Integer> map = new HashMap<>();
-            for (int j = 1; j <= colSize; j++) {
-                if (A[i][j] == 0) continue;
-                map.put(A[i][j], map.getOrDefault(A[i][j], 0) + 1);
-                A[i][j] = 0; // 정렬 전 해당 칸 비우기
-            }
-
-            List<Node> list = new ArrayList<>();
-            for (int key : map.keySet()) {
-                list.add(new Node(key, map.get(key)));
-            }
-            Collections.sort(list);
-
-            int index = 1;
-            for (Node node : list) {
-                if (index > 100) break;
-                A[i][index++] = node.num;
-                A[i][index++] = node.count;
-            }
-            // 정렬 후 남은 칸들을 0으로 채우기 (이미 위에서 0으로 밀었으므로 인덱스만 갱신)
-            maxCol = Math.max(maxCol, index - 1);
-        }
-        colSize = maxCol;
-    }
-
-    // C 연산: 열 단위 정렬
-    static void colOperation() {
-        int maxRow = 0;
-        for (int j = 1; j <= colSize; j++) {
-            Map<Integer, Integer> map = new HashMap<>();
-            for (int i = 1; i <= rowSize; i++) {
-                if (A[i][j] == 0) continue;
-                map.put(A[i][j], map.getOrDefault(A[i][j], 0) + 1);
-                A[i][j] = 0; // 정렬 전 해당 칸 비우기
-            }
-
-            List<Node> list = new ArrayList<>();
-            for (int key : map.keySet()) {
-                list.add(new Node(key, map.get(key)));
-            }
-            Collections.sort(list);
-
-            int index = 1;
-            for (Node node : list) {
-                if (index > 100) break;
-                A[index++][j] = node.num;
-                A[index++][j] = node.count;
-            }
-            maxRow = Math.max(maxRow, index - 1);
-        }
-        rowSize = maxRow;
-    }
 }
